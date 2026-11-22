@@ -1,0 +1,49 @@
+import express from "express";
+import cors from "cors";
+
+import { env } from "./config/env.js";
+import { connectDB, getDB } from "./config/db.js";
+
+const app = express();
+
+app.use(
+  cors({
+    origin: env.clientOrigin,
+    credentials: true,
+  })
+);
+
+app.use(express.json());
+
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to MentorLagbe API",
+  });
+});
+
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "MentorLagbe server is running",
+    database: getDB().databaseName,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.use((_req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "API route not found",
+  });
+});
+
+const startServer = async () => {
+  await connectDB();
+
+  app.listen(env.port, () => {
+    console.log(`MentorLagbe server running on port ${env.port}`);
+  });
+};
+
+startServer();
