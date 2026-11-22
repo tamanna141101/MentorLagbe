@@ -3,7 +3,7 @@ import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 
 import { env } from "./config/env.js";
-import { connectDB, getDB } from "./config/db.js";
+import { connectDB } from "./config/db.js";
 import { auth } from "./lib/auth.js";
 
 const app = express();
@@ -12,27 +12,25 @@ app.use(
   cors({
     origin: env.clientOrigin,
     credentials: true,
-  })
+  }),
 );
 
-// Better Auth route must come before express.json()
+// Better Auth route
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json());
 
 app.get("/", (_req, res) => {
-  res.status(200).json({
+  res.json({
     success: true,
-    message: "Welcome to MentorLagbe API",
+    message: "MentorLagbe API is running",
   });
 });
 
 app.get("/api/health", (_req, res) => {
-  res.status(200).json({
+  res.json({
     success: true,
-    message: "MentorLagbe server is running",
-    database: getDB().databaseName,
-    timestamp: new Date().toISOString(),
+    message: "Server is healthy",
   });
 });
 
@@ -44,11 +42,15 @@ app.use((_req, res) => {
 });
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    await connectDB();
 
-  app.listen(env.port, () => {
-    console.log(`MentorLagbe server running on port ${env.port}`);
-  });
+    app.listen(env.port, () => {
+      console.log(`Server running on http://localhost:${env.port}`);
+    });
+  } catch (error) {
+    console.error("Server startup failed:", error);
+  }
 };
 
 startServer();
