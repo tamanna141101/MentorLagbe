@@ -1,7 +1,7 @@
 import { MongoClient, Db } from "mongodb";
 import { env } from "./env.js";
 
-const client = new MongoClient(env.mongodbUri);
+export const mongoClient = new MongoClient(env.mongodbUri);
 
 let database: Db;
 
@@ -14,27 +14,21 @@ const requiredCollections = [
 
 export const connectDB = async (): Promise<Db> => {
   try {
-    await client.connect();
+    await mongoClient.connect();
 
-    database = client.db(env.dbName);
+    database = mongoClient.db(env.dbName);
 
-    const existingCollections = await database
-      .listCollections()
-      .toArray();
+    const existing = await database.listCollections().toArray();
+    const existingNames = existing.map((item) => item.name);
 
-    const existingNames = existingCollections.map(
-      (collection) => collection.name
-    );
-
-    for (const collectionName of requiredCollections) {
-      if (!existingNames.includes(collectionName)) {
-        await database.createCollection(collectionName);
+    for (const name of requiredCollections) {
+      if (!existingNames.includes(name)) {
+        await database.createCollection(name);
       }
     }
 
     console.log("MongoDB connected successfully");
-    console.log(`Database: ${env.dbName}`);
-    console.log("Required collections are ready");
+    console.log(`Application database: ${env.dbName}`);
 
     return database;
   } catch (error) {
@@ -45,8 +39,14 @@ export const connectDB = async (): Promise<Db> => {
 
 export const getDB = (): Db => {
   if (!database) {
-    throw new Error("Database is not connected yet");
+    throw new Error("Database is not connected");
   }
 
   return database;
+};
+
+// Better Auth uses a separate database so the
+// four assignment collections remain separate.
+export const getAuthDB = (): Db => {
+  return mongoClient.db("mentorlagbe_auth");
 };
