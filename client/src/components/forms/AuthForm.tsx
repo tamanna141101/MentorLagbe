@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +17,8 @@ import {
   User,
   ArrowRight,
 } from "lucide-react";
+
+import { signIn, signUp } from "@/lib/auth-client";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -34,7 +37,10 @@ type Props = {
 
 export default function AuthForm({ mode }: Props) {
   const isSignUp = mode === "sign-up";
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [socialLoading, setSocialLoading] = useState(false);
 
   const {
     register,
@@ -56,26 +62,66 @@ export default function AuthForm({ mode }: Props) {
       return;
     }
 
-    if (isSignUp && !data.role) {
-      toast.error("Please select your account role.");
-      return;
+    try {
+      if (isSignUp) {
+        const { error } = await signUp.email({
+          name: data.name!.trim(),
+          email: data.email,
+          password: data.password,
+          callbackURL: "/dashboard",
+        });
+
+        if (error) {
+          toast.error(error.message || "Registration failed.");
+          return;
+        }
+
+        toast.success("Account created successfully!");
+      } else {
+        const { error } = await signIn.email({
+          email: data.email,
+          password: data.password,
+          callbackURL: "/dashboard",
+        });
+
+        if (error) {
+          toast.error(error.message || "Login failed.");
+          return;
+        }
+
+        toast.success("Login successful!");
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
     }
-
-    // Real authentication will be connected with Better Auth.
-    console.log("Validated authentication form:", {
-      ...data,
-      password: "[hidden]",
-    });
-
-    toast.info(
-      "Form validation successful! Authentication will be connected in the backend step."
-    );
   };
 
-  const handleSocialLogin = (provider: string) => {
-    toast.info(
-      `${provider} login will be connected with Better Auth in the backend step.`
-    );
+  const handleSocialLogin = async (provider: "google" | "github") => {
+    try {
+      setSocialLoading(true);
+
+      const { error } = await signIn.social({
+        provider,
+        callbackURL: "/dashboard",
+      });
+
+      if (error) {
+        toast.error(error.message || `${provider} login failed.`);
+        setSocialLoading(false);
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Social login failed."
+      );
+      setSocialLoading(false);
+    }
   };
 
   const inputClass =
@@ -161,7 +207,6 @@ export default function AuthForm({ mode }: Props) {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
-
             {isSignUp && (
               <>
                 <div>
@@ -281,7 +326,7 @@ export default function AuthForm({ mode }: Props) {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || socialLoading}
               className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting
@@ -305,8 +350,9 @@ export default function AuthForm({ mode }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => handleSocialLogin("Google")}
-              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-3 text-sm font-bold text-[#14231f] transition hover:bg-slate-50"
+              disabled={socialLoading || isSubmitting}
+              onClick={() => handleSocialLogin("google")}
+              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-3 text-sm font-bold text-[#14231f] transition hover:bg-slate-50 disabled:opacity-50"
             >
               <span className="text-lg font-extrabold text-blue-600">G</span>
               Google
@@ -314,8 +360,9 @@ export default function AuthForm({ mode }: Props) {
 
             <button
               type="button"
-              onClick={() => handleSocialLogin("GitHub")}
-              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-3 text-sm font-bold text-[#14231f] transition hover:bg-slate-50"
+              disabled={socialLoading || isSubmitting}
+              onClick={() => handleSocialLogin("github")}
+              className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-3 text-sm font-bold text-[#14231f] transition hover:bg-slate-50 disabled:opacity-50"
             >
               <span className="text-lg">⌘</span>
               GitHub
