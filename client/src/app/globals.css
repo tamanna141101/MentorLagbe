@@ -1,26 +1,143 @@
+
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8faf9;
+  --foreground: #14231f;
+  --primary: #087f5b;
+  --primary-dark: #066448;
+  --secondary: #102a26;
+  --muted: #64748b;
+  --border: #e5ece8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+button, a {
+  transition: all 0.2s ease;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: #b7f7dc;
+  color: #102a26;
+}
+
+.container-custom {
+  width: min(1180px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.section-padding {
+  padding-block: 88px;
+}
+
+.section-label {
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.section-title {
+  color: var(--secondary);
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: white;
+  padding: 13px 22px;
+  font-weight: 700;
+}
+
+.primary-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  color: var(--secondary);
+  padding: 13px 22px;
+  font-weight: 700;
+}
+
+.secondary-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  .section-padding {
+    padding-block: 60px;
+  }
+
+  .container-custom {
+    width: calc(100% - 32px);
+  }
+}
+
+
+/* Global layout spacing fix */
+.container-custom {
+  width: 100%;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* Prevent content from touching screen edges */
+section {
+  width: 100%;
+}
+
+/* Consistent section spacing */
+.section-padding {
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+
+@media (max-width: 640px) {
+  .container-custom {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .section-padding {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
 }
