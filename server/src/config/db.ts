@@ -1,3 +1,4 @@
+
 import { MongoClient, Db } from "mongodb";
 import { env } from "./env.js";
 
@@ -45,8 +46,7 @@ export const getDB = (): Db => {
   return database;
 };
 
-// Better Auth uses a separate database so the
-// four assignment collections remain separate.
+// Better Auth uses a separate database.
 export const getAuthDB = (): Db => {
   return mongoClient.db("mentorlagbe_auth");
 };

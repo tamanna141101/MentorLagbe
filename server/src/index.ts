@@ -1,3 +1,4 @@
+
 import express from "express";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
@@ -58,10 +59,11 @@ const startServer = async () => {
     await connectDB();
 
     app.listen(env.port, () => {
-      console.log(`Server running on http://localhost:${env.port}`);
+      console.log(`Server running on port ${env.port}`);
     });
   } catch (error) {
     console.error("Server startup failed:", error);
+    process.exit(1);
   }
 };
 
