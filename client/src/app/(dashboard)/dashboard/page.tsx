@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -8,6 +9,7 @@ import {
   User,
   LogOut,
   ArrowRight,
+  ShieldCheck,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -20,6 +22,30 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  if (!session) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center max-w-md w-full">
+          <GraduationCap className="mx-auto text-emerald-600 mb-4" size={42} />
+          <h1 className="text-2xl font-bold text-gray-900">
+            Sign in required
+          </h1>
+          <p className="text-gray-500 mt-2">
+            Please sign in to access your dashboard.
+          </p>
+          <Link
+            href="/sign-in"
+            className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+          >
+            Sign In <ArrowRight size={18} />
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const role = (session.user as typeof session.user & { role?: string }).role || "student";
 
   return (
     <main className="min-h-screen bg-gray-50 py-12">
@@ -54,10 +80,11 @@ export default function DashboardPage() {
 
             <div>
               <h2 className="text-xl font-bold text-gray-900">
-                {session?.user?.name || "User"}
+                {session.user.name || "User"}
               </h2>
-              <p className="text-gray-500">
-                {session?.user?.email}
+              <p className="text-gray-500">{session.user.email}</p>
+              <p className="text-sm text-emerald-600 font-semibold capitalize mt-1">
+                {role} Account
               </p>
             </div>
           </div>
@@ -95,6 +122,24 @@ export default function DashboardPage() {
               View Profile <ArrowRight size={18} />
             </span>
           </Link>
+
+          {role === "admin" && (
+            <Link
+              href="/dashboard/admin"
+              className="bg-white rounded-2xl border border-gray-100 p-7 hover:shadow-lg transition"
+            >
+              <ShieldCheck className="text-emerald-600 mb-4" size={30} />
+              <h3 className="text-xl font-bold text-gray-900">
+                Admin Panel
+              </h3>
+              <p className="text-gray-500 mt-2">
+                Manage users and tuition approvals.
+              </p>
+              <span className="flex items-center gap-2 text-emerald-600 font-semibold mt-5">
+                Open Admin <ArrowRight size={18} />
+              </span>
+            </Link>
+          )}
         </div>
       </div>
     </main>
