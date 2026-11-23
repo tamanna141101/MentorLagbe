@@ -8,9 +8,21 @@ import { auth } from "./lib/auth.js";
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://mentorlagbe-beige.vercel.app",
+  env.clientOrigin.replace(/\/$/, ""),
+];
+
 app.use(
   cors({
-    origin: env.clientOrigin,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
 );

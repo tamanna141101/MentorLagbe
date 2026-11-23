@@ -4,13 +4,19 @@ import { mongodbAdapter } from "@better-auth/mongo-adapter";
 import { getAuthDB, mongoClient } from "../config/db.js";
 import { env } from "../config/env.js";
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://mentorlagbe-beige.vercel.app",
+  env.clientOrigin.replace(/\/$/, ""),
+];
+
 export const auth = betterAuth({
   appName: "MentorLagbe",
 
   baseURL: env.betterAuthUrl,
   secret: env.betterAuthSecret,
 
-  trustedOrigins: [env.clientOrigin],
+  trustedOrigins: allowedOrigins,
 
   database: mongodbAdapter(getAuthDB(), {
     client: mongoClient,
