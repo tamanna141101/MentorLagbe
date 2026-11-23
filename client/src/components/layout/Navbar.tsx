@@ -3,12 +3,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Menu,
   X,
   GraduationCap,
   ArrowRight,
+  LayoutDashboard,
+  LogOut,
 } from "lucide-react";
+
+import { useSession, signOut } from "@/lib/auth-client";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -19,6 +24,15 @@ const navLinks = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMobileOpen(false);
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#e5ece8] bg-white/95 backdrop-blur-md">
@@ -51,16 +65,39 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/sign-in"
-            className="px-4 py-2 text-sm font-bold text-[#102a26] hover:text-[#087f5b]"
-          >
-            Sign In
-          </Link>
+          {!isPending &&
+            (session ? (
+              <>
+                <span className="max-w-[160px] truncate px-3 py-2 text-sm font-bold text-[#102a26]">
+                  {session.user.name || session.user.email}
+                </span>
 
-          <Link href="/sign-up" className="primary-button text-sm">
-            Get Started <ArrowRight size={16} />
-          </Link>
+                <Link href="/dashboard" className="primary-button text-sm">
+                  Dashboard <ArrowRight size={16} />
+                </Link>
+
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                >
+                  <LogOut size={17} />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/sign-in"
+                  className="px-4 py-2 text-sm font-bold text-[#102a26] hover:text-[#087f5b]"
+                >
+                  Sign In
+                </Link>
+
+                <Link href="/sign-up" className="primary-button text-sm">
+                  Get Started <ArrowRight size={16} />
+                </Link>
+              </>
+            ))}
         </div>
 
         <button
@@ -88,21 +125,49 @@ export default function Navbar() {
 
             <hr className="border-gray-100" />
 
-            <Link
-              href="/sign-in"
-              onClick={() => setMobileOpen(false)}
-              className="font-semibold text-[#102a26]"
-            >
-              Sign In
-            </Link>
+            {!isPending &&
+              (session ? (
+                <>
+                  <p className="font-bold text-[#102a26]">
+                    {session.user.name || session.user.email}
+                  </p>
 
-            <Link
-              href="/sign-up"
-              onClick={() => setMobileOpen(false)}
-              className="primary-button"
-            >
-              Create Account <ArrowRight size={16} />
-            </Link>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 font-semibold text-[#087f5b]"
+                  >
+                    <LayoutDashboard size={18} />
+                    Dashboard
+                  </Link>
+
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2 text-left font-semibold text-red-600"
+                  >
+                    <LogOut size={18} />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-in"
+                    onClick={() => setMobileOpen(false)}
+                    className="font-semibold text-[#102a26]"
+                  >
+                    Sign In
+                  </Link>
+
+                  <Link
+                    href="/sign-up"
+                    onClick={() => setMobileOpen(false)}
+                    className="primary-button"
+                  >
+                    Create Account <ArrowRight size={16} />
+                  </Link>
+                </>
+              ))}
           </div>
         </div>
       )}

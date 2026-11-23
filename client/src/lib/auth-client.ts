@@ -1,8 +1,9 @@
+
 import { createAuthClient } from "better-auth/react";
 
-export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000",
-});
+// Auth requests now use the same origin as the frontend.
+// Next.js rewrites /api/auth/* requests to the Render backend.
+export const authClient = createAuthClient();
 
 export const {
   signIn,
