@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -11,32 +11,95 @@ import {
   BookOpen,
   SlidersHorizontal,
 } from "lucide-react";
-import { tuitionData } from "@/lib/data/tuitions";
+import { apiFetch } from "@/lib/api";
+
+type Tuition = {
+  _id: string;
+  title: string;
+  subject: string;
+  classLevel: string;
+  location: string;
+  salary: number;
+  tuitionType: string;
+  daysPerWeek: number;
+  description: string;
+  requirements: string[];
+  postedAt?: string;
+  createdAt?: string;
+};
 
 export default function TuitionsPage() {
+  const [tuitions, setTuitions] = useState<Tuition[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [search, setSearch] = useState("");
   const [subject, setSubject] = useState("All");
   const [location, setLocation] = useState("All");
   const [tuitionType, setTuitionType] = useState("All");
 
-  const subjects = ["All", ...Array.from(new Set(tuitionData.map((item) => item.subject)))];
-  const locations = ["All", ...Array.from(new Set(tuitionData.map((item) => item.location)))];
-  const types = ["All", ...Array.from(new Set(tuitionData.map((item) => item.tuitionType)))];
+  // Load tuition data from MongoDB API
+  useEffect(() => {
+    const loadTuitions = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const result = await apiFetch("/api/tuitions");
+
+        if (!result.success || !Array.isArray(result.data)) {
+          throw new Error("Invalid tuition data received from server");
+        }
+
+        setTuitions(result.data);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load tuition opportunities",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTuitions();
+  }, []);
+
+  const subjects = [
+    "All",
+    ...Array.from(new Set(tuitions.map((item) => item.subject))),
+  ];
+
+  const locations = [
+    "All",
+    ...Array.from(new Set(tuitions.map((item) => item.location))),
+  ];
+
+  const types = [
+    "All",
+    ...Array.from(new Set(tuitions.map((item) => item.tuitionType))),
+  ];
 
   const filteredTuitions = useMemo(() => {
-    return tuitionData.filter((tuition) => {
+    return tuitions.filter((tuition) => {
       const searchMatch =
         tuition.title.toLowerCase().includes(search.toLowerCase()) ||
         tuition.subject.toLowerCase().includes(search.toLowerCase()) ||
         tuition.classLevel.toLowerCase().includes(search.toLowerCase());
 
-      const subjectMatch = subject === "All" || tuition.subject === subject;
-      const locationMatch = location === "All" || tuition.location === location;
-      const typeMatch = tuitionType === "All" || tuition.tuitionType === tuitionType;
+      const subjectMatch =
+        subject === "All" || tuition.subject === subject;
+
+      const locationMatch =
+        location === "All" || tuition.location === location;
+
+      const typeMatch =
+        tuitionType === "All" || tuition.tuitionType === tuitionType;
 
       return searchMatch && subjectMatch && locationMatch && typeMatch;
     });
-  }, [search, subject, location, tuitionType]);
+  }, [tuitions, search, subject, location, tuitionType]);
 
   const resetFilters = () => {
     setSearch("");
@@ -71,7 +134,10 @@ export default function TuitionsPage() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={18}
+              />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -138,18 +204,43 @@ export default function TuitionsPage() {
           </div>
         </div>
 
-        {filteredTuitions.length > 0 ? (
+        {loading ? (
+          <div className="rounded-2xl bg-white px-6 py-16 text-center">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-700" />
+            <p className="mt-4 text-sm text-slate-500">
+              Loading tuition opportunities...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="rounded-2xl border border-red-100 bg-white px-6 py-16 text-center">
+            <h3 className="text-xl font-bold text-red-700">
+              Unable to load tuitions
+            </h3>
+            <p className="mt-2 text-sm text-slate-500">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="primary-button mt-5"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : filteredTuitions.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredTuitions.map((tuition) => (
               <article
-                key={tuition.id}
+                key={tuition._id}
                 className="flex flex-col rounded-2xl border border-slate-100 bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
                     {tuition.tuitionType}
                   </span>
-                  <span className="text-xs text-slate-400">{tuition.postedAt}</span>
+                  <span className="text-xs text-slate-400">
+                    {tuition.postedAt ||
+                      (tuition.createdAt
+                        ? new Date(tuition.createdAt).toLocaleDateString()
+                        : "Recently posted")}
+                  </span>
                 </div>
 
                 <h3 className="mt-5 text-lg font-extrabold leading-7 text-[#102a26]">
@@ -171,15 +262,16 @@ export default function TuitionsPage() {
                   </p>
                 </div>
 
-                <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-5 mt-6">
+                <div className="mt-auto mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
                   <div>
                     <p className="text-xs text-slate-400">Monthly Salary</p>
                     <p className="mt-1 text-lg font-extrabold text-emerald-700">
                       ৳{tuition.salary.toLocaleString("en-BD")}
                     </p>
                   </div>
+
                   <Link
-                    href={`/tuitions/${tuition.id}`}
+                    href={`/tuitions/${tuition._id}`}
                     className="inline-flex items-center gap-2 rounded-lg bg-[#102a26] px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700"
                   >
                     Details <ArrowRight size={16} />
