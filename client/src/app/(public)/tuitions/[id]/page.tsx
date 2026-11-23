@@ -12,7 +12,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { getTuitionById } from "@/lib/data/tuitions";
-export const instant = false;
+//export const instant = false;
 
 type Props = {
   params: Promise<{ id: string }>;
