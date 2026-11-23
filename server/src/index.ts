@@ -6,6 +6,7 @@ import { toNodeHandler } from "better-auth/node";
 import { env } from "./config/env.js";
 import { connectDB } from "./config/db.js";
 import { auth } from "./lib/auth.js";
+import tuitionRoutes from "./routes/tuition.routes.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json());
+app.use("/api/tuitions", tuitionRoutes);
 
 app.get("/", (_req, res) => {
   res.json({
