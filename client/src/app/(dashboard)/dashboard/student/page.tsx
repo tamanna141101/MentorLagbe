@@ -53,7 +53,7 @@ export default function StudentDashboardPage() {
       value: "0",
       description: "Applications submitted",
       icon: ClipboardList,
-      href: "/dashboard/student/applications",
+      href: "/dashboard/student/my-applications",
     },
     {
       title: "My Profile",
